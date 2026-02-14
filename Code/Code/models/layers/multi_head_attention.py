@@ -27,21 +27,21 @@ class MultiHeadAttention(nn.Module):
 # d_model = 4       # 为了方便演示
 # n_head = 2
         # 2. split tensor by number of heads
-        q, k, v = self.split(q), self.split(k), self.split(v)#[1,3,4]
+        q, k, v = self.split(q), self.split(k), self.split(v)#现在每个头内部是[1,3,2]
 
         # 3. do scale dot product to compute similarity
-        out, attention = self.attention(q, k, v, mask=mask)
+        out, attention = self.attention(q, k, v, mask=mask)#v, score
 
         # 4. concat and pass to linear layer
-        out = self.concat(out)
-        out = self.w_concat(out)
+        out = self.concat(out)#[batch, length, d_model]
+        out = self.w_concat(out)#再加一个线性层是为了让各个head的信息融合到一起
 
         # 5. visualize attention map
         # TODO : we should implement visualization
 
         return out
 
-    def split(self, tensor):
+    def split(self, tensor):#分头
         """
         split tensor by number of head
 
@@ -67,4 +67,7 @@ class MultiHeadAttention(nn.Module):
         d_model = head * d_tensor
 
         tensor = tensor.transpose(1, 2).contiguous().view(batch_size, length, d_model)
+        """
+        [batch, head, length, d_k]->[batch, length, head, d_k]为了把head都放在一起
+        """
         return tensor
